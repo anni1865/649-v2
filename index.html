@@ -1,0 +1,277 @@
+<!--649 Final Project--><!--test line-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+    <div id="filter">
+    	<div id = "likes">
+		    <h3>Likes Filter</h3>
+		    <input class="filter_likes" id="20" type="radio" name="likes">0-20 Likes</input><br>
+		    <input class="filter_likes" id="50" type="radio" name="likes">20-50 Likes</input><br>
+		    <input class="filter_likes" id="100" type="radio" name="likes">50-100 Likes</input><br>
+		    <input class="filter_likes" id="200" type="radio" name="likes">100+ Likes</input><br>
+		</div>
+
+		<div id = "hugs">
+			<h3>Hugs Filter</h3>
+		    <input class="filter_hugs" id="20hugs" type="radio" name="hugs">0-20 Hugs</input><br>
+		    <input class="filter_hugs" id="20hugs" type="radio" name="hugs">20-50 Hugs</input><br>
+		    <input class="filter_hugs" id="100hugs" type="radio" name="hugs">50-100 Hugs</input><br>
+		    <input class="filter_hugs" id="400hugs" type="radio"  name="hugs">100+ Hugs</input><br>
+		</div>
+
+		<div id = "metoos">
+			<h3>Metoos Filter</h3>
+		    <input class="filter_metoos" id="20metoos" type="radio" name="metoos">0-20 Me toos</input><br>
+		    <input class="filter_metoos" id="50metoos" type="radio" name="metoos">20-50 Me toos</input><br>
+		    <input class="filter_metoos" id="100metoos" type="radio"  name="metoos">50-100 Me toos</input><br>
+		    <input class="filter_metoos" id="400metoos" type="radio" name="metoos">100+ Me toos</input><br>
+		</div>
+    </div>
+
+    <div id = "scatterplot"><h2>Topics</h2> </div>  
+    <div id = "keywords"><h2>Keywords</h2> </div>  
+    <div id="keywords_rect"></div>
+    <div id = "postboard"><h2>Post Board</h2></div>    
+
+<script>
+// Add Filter
+var likes_filter=0;
+// post_board(likes_filter);
+drawTopics();
+post_board(likes_filter);
+
+d3.selectAll(".filter_likes").on("change", function() {
+  var type = this.value;
+    if(this.class="filter_likes"){
+          if(this.checked){
+            likes_filter=this.id;
+          }
+          else {likes_filter=0;}
+          console.log(likes_filter);
+          drawTopics();
+          post_board(likes_filter);
+    }
+   drawKeywords();
+ });
+//Add Text
+function post_board(likes_filter){
+    d3.selectAll(".text").remove();
+    d3.csv("data/all_topic0.csv")
+    .row(function(d) { return {  ID: d.ID, 
+                                 PostID: d.PostID, 
+                                 text: d.Text,
+                                 URL:d.URL, 
+                                 Likes:+d.Likes,
+                                 Hugs:+d.Hugs,
+                                 MeToos:+d.Metoos,
+                                 sentiment: +d.sentiment,
+                                 sentiment_tag: d.sentiment_tag,
+                                 polarity: +d.polarity,
+                                 polarity_tag: +d.polarity_tag,
+                                 concept_text: d.concept_text,
+                                 concept_type: d.concept_type};
+    })
+    .get(function(error, rows) { 
+      // console.log(rows); i<rows.length
+      for(var i=0; i<10;i++){ //show 10 posts
+            if(rows[i].Likes>=likes_filter){
+              d3.select("#postboard")
+                 .append("p")
+                 .attr("class", "text")
+                 .attr("transform", "translate(100,"+i*20+")")
+                 .append("text")
+                 .style("font-weight", "bold")
+                 .style("text-anchor", "left")
+                 .text("Post Text: "+rows[i].text)
+                 .append("p")
+                 .text(" Likes: "+ rows[i].Likes +" Hugs: "+ rows[i].Hugs + " Me Toos: "+rows[i].MeToos); 
+            }
+       }
+    });
+}   
+
+
+//draw xy axis
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 500 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var r = d3.scale.sqrt()
+        .domain([11457,31849])
+        .range([5,30]);
+
+function color(i){
+    var color = d3.scale.ordinal()
+                .domain([0,1,2,3,4,5,6,7,8,9])
+                .range(["rgb(31, 119, 180)","rgb(174, 199, 232)","rgb(255, 127, 14)","rgb(255, 187, 120)","rgb(44, 160, 44)","rgb(152, 223, 138)","rgb(214, 39, 40)","rgb(153,153,153)","rgb(153,153,153)","rgb(153,153,153)"]);
+    return color(i);
+}
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+    var svg = d3.select("#scatterplot").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("class", "sp")
+      	.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    d3.csv("data/sentimentallistoutput1202.csv", function(error, data) {
+      data.forEach(function(d) {
+        d.sentiment = +d.sentiment;
+        d.polarity = +d.polarity;
+      });
+      y.domain(d3.extent(data, function(d) { return d.sentiment; }));
+      x.domain(d3.extent(data, function(d) { return d.polarity; }));
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height/2 + ")")
+        .call(xAxis)
+      .append("text")
+        .attr("class", "label")
+        .attr("x", width)
+        .attr("y", -6)
+        .style("text-anchor", "end")
+        .text("polarity");
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("class", "label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("sentiment");
+    });
+var Topic_frequency = [18663,15115,11457,18862,21771,26240,23141,23794,30837,31849];
+
+
+function drawTopics(){
+  for (var i = 0; i < 10; i++) {
+    drawTopics_num(i);
+  }
+}
+
+  
+function drawTopics_num(data_num){
+	d3.selectAll(".dot").remove();
+	d3.selectAll(".text").remove();
+  // alert("data_num:"+data_num);
+  d3.csv("data/all_topic"+data_num+".csv")
+  		.row(function(d) { return {  ID: d.ID, 
+  		                             PostID: d.PostID, 
+  		                             text: d.Text,
+  		                             URL:d.URL, 
+  		                             Likes:+d.Likes,
+  		                             Hugs:+d.Hugs,
+  		                             MeToos:+d.Metoos,
+  		                             sentiment: +d.sentiment,
+  		                             sentiment_tag: d.sentiment_tag,
+  		                             polarity: +d.polarity,
+  		                             polarity_tag: +d.polarity_tag,
+  		                             concept_text: d.concept_text, //changed to TopicNum in the new data file
+  		                             concept_type: d.concept_type}; //changed to TopicText in the new data file
+  		})
+	    .get(function(error, rows) { 
+	      
+  			var colors = d3.scale.category10().domain(d3.range(0,10));
+  			var margin = {top: 20, right: 20, bottom: 30, left: 40};
+        var senti_values = [];
+        var polar_values = [];
+        var senti_count=0;
+        var polar_count=0;
+        var data_length=rows.length;
+        console.log("data_length:"+data_length);
+      	     for(var i=0; i<data_length;i++){
+
+                if(rows[i].sentiment >=-1 && rows[i].sentiment <=1){
+                   senti_values[senti_count] = rows[i].sentiment;
+                   senti_count++;
+                }
+                if(rows[i].polarity >=0 && rows[i].polarity <=1){
+                   polar_values[polar_count] = rows[i].polarity;
+                   polar_count++;
+                }
+  	        }
+            var senti_median = d3.median(senti_values);
+            var polar_median = d3.median(polar_values);
+            console.log("polarity"+data_num+": "+polar_median);
+            console.log("sentiment"+data_num+": "+senti_median);
+           //     if(rows[i].Likes>=likes_filter){
+                d3.select(".sp")
+                .append("g")
+                .append("circle")
+                .attr("class", "dot")
+                .attr("r",r(data_length))
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .attr("cx", x(polar_median))
+                .attr("cy", y(senti_median))
+                .style("fill", color(data_num));
+
+	    });
+}
+
+drawKeywords();
+
+var rect= d3.select("#keywords_rect").append("svg:svg").attr("height", 550);
+
+  function drawKeywords(){
+        d3.csv("data/keywords_frequency.csv")
+        .row(function(d) { 
+          return {  Keywords: d.Keywords, 
+                    Frequency: +d.Frequency};
+        })
+        .get(function(error, row_keywords) { 
+          //console.log(row_keywords[1].Keywords);
+           for(var i=0; i<30;i++){
+               d3.select("#keywords")
+                 .append("p")
+                 .attr("class", "text")
+                 .attr("transform", "translate(100,"+i*20+")")
+                 .attr("width", "30px")
+                 .append("text")
+                 .style("font-weight", "bold")
+                 .style("text-anchor", "left")
+                 .text(row_keywords[i].Keywords);
+               
+              rect.append("svg:rect")       // attach a rectangle
+                .attr("x", 0)         // position the left of the rectangle
+                .attr("y", 16*i+50) 
+                .attr("fill","#666")         // position the top of the rectangle
+                .attr("height", 10)    // set the height
+                .attr("width", row_keywords[i].Frequency);    // set the width
+          }
+             
+        });
+  }
+
+</script>
+
+
+</body>
+</html>
