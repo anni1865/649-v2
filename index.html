@@ -14,13 +14,17 @@
 </head>
 <body>
     <div id="filter">
-        <div id = "scatterplot_overall"><h2>Overall View</h2>  <div id = "overall">
-              <input class="filter_overall" id="20" type="radio" name="likes">20+ </input>
-              <input class="filter_overall" id="50" type="radio" name="likes">50+ </input>
-              <input class="filter_overall" id="100" type="radio" name="likes">100+ </input>
-        </div></div> 
+        <div id = "scatterplot_overall" class="scatterplot_view_small"><h2>Overall View</h2>  
+              <div id = "overall">
+              <input class="filter_overall" id="0" type="radio" name="overall">All</input>
+              <input class="filter_overall" id="20" type="radio" name="overall">20+ </input>
+              <input class="filter_overall" id="50" type="radio" name="overall">50+ </input>
+              <input class="filter_overall" id="100" type="radio" name="overall">100+ </input>
+              </div>
+        </div> 
         <div id = "scatterplot_likes"><h2>Likes View</h2>
               <div id = "likes">
+              <input class="filter_likes" id="0" type="radio" name="likes">All</input>
               <input class="filter_likes" id="20" type="radio" name="likes">20+ </input>
               <input class="filter_likes" id="50" type="radio" name="likes">50+ </input>
               <input class="filter_likes" id="100" type="radio" name="likes">100+ </input>
@@ -29,6 +33,7 @@
 
         <div id = "scatterplot_hugs"><h2>Hugs View</h2> 
               <div id = "hugs">
+                  <input class="filter_hugs" id="0" type="radio" name="likes">All</input>
                   <input class="filter_hugs" id="20" type="radio" name="hugs">20+ </input>
                   <input class="filter_hugs" id="50" type="radio" name="hugs">50+ </input>
                   <input class="filter_hugs" id="100" type="radio" name="hugs">100+ </input>
@@ -37,6 +42,7 @@
     		
         <div id = "scatterplot_metoos"><h2>Metoos View</h2> 
               <div id = "metoos">
+                  <input class="filter_metoos" id="0" type="radio" name="likes">All</input>
                   <input class="filter_metoos" id="20" type="radio" name="metoos">20+ </input>
                   <input class="filter_metoos" id="50" type="radio" name="metoos">50+ </input>
                   <input class="filter_metoos" id="100" type="radio"  name="metoos">100+ </input>
@@ -44,29 +50,35 @@
         </div>
   
    </div>
-      <div id="slider" width="100%"></div>
-      <div id = "scatterplot"></div>        
-
-<script type="text/javascript">
-$("#slider").slider(
-{
-            value:100,
-            min: 0,
-            max: 500,
-            step: 50,
-            slide: function( event, ui ) {
-                $( "#slider-value" ).html( ui.value );
-            }
-}
-);
-
-</script>
+   <div id = "scatterplot">
+              <div id = "topic_data_size">
+                  Sample Data Size (default:800 posts) 
+                  <input class="filter_metoos" id="0" type="text" name="likes"></input>
+                  <button> Submit </button>
+                  <button> Reset </button>
+              </div>
+   </div>        
 <script>
 // Add Filter
 var overall_filter=0,likes_filter=0, hugs_filter=0, metoos_filter=0;
-drawTopics(0);
+var data_size = 800;
+var data_num = 0;
+drawTopics(data_size,data_num,0,0,0);
+
+function drawTopics(data_size,data_num,likes_filter,hugs_filter,metoos_filter){
+  drawTopicsView(data_size,data_num,"big","overall",likes_filter,hugs_filter,metoos_filter);
+  drawTopicsView(data_size,data_num,"small","overall",likes_filter,hugs_filter,metoos_filter);
+  drawTopicsView(data_size,data_num,"small","likes",likes_filter,hugs_filter,metoos_filter);
+  drawTopicsView(data_size,data_num,"small","hugs",likes_filter,hugs_filter,metoos_filter);
+  drawTopicsView(data_size,data_num,"small","metoos",likes_filter,hugs_filter,metoos_filter);
+}
+
+d3.selectAll(".sp_overall").on("click", function() {
+  console.log("hello");
+});
+
 d3.selectAll(".filter_overall").on("change", function() {
-  var type = this.value;
+    var type = this.value;
     if(this.class="filter_overall"){
           if(this.checked){
             overall_filter=this.id;
@@ -74,7 +86,9 @@ d3.selectAll(".filter_overall").on("change", function() {
           else {
             overall_filter=0;
           }
-          drawTopicsView(0,"small","overall",likes_filter,hugs_filter,metoos_filter);
+         d3.selectAll(".dot_big").remove();
+         d3.selectAll(".text_big").remove();
+         drawTopics(data_size,data_num,overall_filter,overall_filter,overall_filter);
     }
    // drawKeywords();
  });
@@ -87,7 +101,7 @@ d3.selectAll(".filter_likes").on("change", function() {
           else {
             likes_filter=0;
           }
-          drawTopicsView(0,"small","likes",likes_filter,hugs_filter,metoos_filter);
+          drawTopicsView(data_size,data_num,"small","likes",likes_filter,hugs_filter,metoos_filter);
     }
    // drawKeywords();
  });
@@ -100,7 +114,7 @@ d3.selectAll(".filter_hugs").on("change", function() {
           else {
             hugs_filter=0;
           }
-          drawTopicsView(0,"small","hugs",likes_filter,hugs_filter,metoos_filter);
+          drawTopicsView(data_size,data_num,"small","hugs",likes_filter,hugs_filter,metoos_filter);
     }
    drawKeywords();
  });
@@ -113,7 +127,7 @@ d3.selectAll(".filter_metoos").on("change", function() {
           else {
             metoos_filter=0;
           }
-          drawTopicsView(0,"small","metoos",likes_filter,hugs_filter,metoos_filter);
+          drawTopicsView(data_size,data_num,"small","metoos",likes_filter,hugs_filter,metoos_filter);
     }
    drawKeywords();
  });
@@ -122,7 +136,7 @@ d3.selectAll(".filter_metoos").on("change", function() {
 //draw xy axis
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
     width = 1000 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom
+    height = 450 - margin.top - margin.bottom
     margin_small = 6,
     width_small=150-margin_small,
     height_small=150-margin_small;
@@ -159,16 +173,22 @@ var xAxis = d3.svg.axis()
 var yAxis_small = d3.svg.axis()
     .scale(y_small)
     .ticks(0)
+    .tickSize(0)
     .orient("left");
 
 var xAxis_small = d3.svg.axis()
     .scale(x_small)
     .ticks(0)
+    .tickSize(0)
     .orient("bottom");
 
 var svg_overall = d3.select("#scatterplot_overall").append("svg")
         .attr("class", "sp_overall")
         .append("g");
+
+svg_overall.on('click',function(){
+  alert("hello");
+});
 
 var svg_likes= d3.select("#scatterplot_likes").append("svg")
         .attr("class", "sp_likes")
@@ -274,16 +294,7 @@ y_small.domain(d3.extent(data, function(d) { return d.polarity; }));
 // var Topic_frequency = [18663,15115,11457,18862,21771,26240,23141,23794,30837,31849];
 
 
-function drawTopics(data_num){
-  drawTopicsView(data_num,"big","overall",likes_filter,hugs_filter,metoos_filter);
-  drawTopicsView(data_num,"small","overall",likes_filter,hugs_filter,metoos_filter);
-  drawTopicsView(data_num,"small","likes",likes_filter,hugs_filter,metoos_filter);
-  drawTopicsView(data_num,"small","hugs",likes_filter,hugs_filter,metoos_filter);
-  drawTopicsView(data_num,"small","metoos",likes_filter,hugs_filter,metoos_filter);
-}
-
-
-function drawTopicsView(data_num,view,map,likes_filter,hugs_filter,metoos_filter){
+function drawTopicsView(data_size,data_num,view,map,likes_filter,hugs_filter,metoos_filter){
 
   d3.csv("data/all_topic"+data_num+".csv")
       .row(function(d) { return {  ID: d.ID, 
@@ -302,13 +313,15 @@ function drawTopicsView(data_num,view,map,likes_filter,hugs_filter,metoos_filter
       })
       .get(function(error, rows) { 
          d3.selectAll(".dot_small_"+map).remove();
-            d3.selectAll(".text_small_"+map).remove();
-            for(var i=0; i<3000;i++){
+         d3.selectAll(".text_small_"+map).remove();
+
+            for(var i=0; i<data_size;i++){
                  if((rows[i].polarity>=0)&&(rows[i].polarity<=1)&&(rows[i].sentiment>=-1)&&(rows[i].sentiment<=1)){
                          if (view=="small") {
                                if (map=="overall") {
-                                    if((rows[i].Likes>=overall_filter)&&(rows[i].Hugs>=overall_filter)&&(rows[i].MeToos>=overall_filter)){
-                                    draw_small_plot(rows[i],map,data_num);}
+                                    if(rows[i].Likes>=likes_filter || rows[i].Hugs>=hugs_filter || rows[i].MeToos>=metoos_filter ){
+                                    draw_small_plot(rows[i],map,data_num);
+                                    }
                                 }
                                 if (map=="likes") {
                                  
@@ -327,7 +340,10 @@ function drawTopicsView(data_num,view,map,likes_filter,hugs_filter,metoos_filter
                                 }
                          }
                          else{
+                          if(rows[i].Likes>=likes_filter || rows[i].Hugs>=hugs_filter || rows[i].MeToos>=metoos_filter )
+                            {
                               draw_big_plot(rows[i],data_num);
+                            }
                          }
                   }
              }
@@ -340,12 +356,13 @@ function draw_big_plot(data,data_num){
       .append("g")
       .append("circle")
       .attr("class", "dot_big")
-      .attr("r",5)
+      .attr("transform", "translate(45,0)")
+      .attr("r",10)
       .attr("cx", x(data.sentiment))
       .attr("cy", y(data.polarity))
       .style("fill", color(data_num))
-      .style("stroke","#999999")
-      .style("opacity",0.8);
+      .style("stroke","#f2f2f2")
+      .style("opacity",0.6);
 }
 
 function draw_small_plot(data,map,data_num){
@@ -357,9 +374,10 @@ function draw_small_plot(data,map,data_num){
       .attr("cx", x_small(data.sentiment))
       .attr("cy", y_small(data.polarity))
       .style("fill", color(data_num))
-      .style("stroke","#999999")
-      .style("opacity",0.8);
+      .style("stroke","#f2f2f2")
+      .style("opacity",0.6);
 }
+
 
 </script>
 
